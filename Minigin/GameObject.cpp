@@ -12,7 +12,7 @@ int dae::GameObject::GetChildrenLenght()
 
 dae::GameObject* dae::GameObject::GetChildAtIndex(int index)
 {
-	if (index < m_children.size() && index > 0) {
+	if (index < (int)m_children.size() && index > 0) {
 		return m_children[index].get();
 	}
 	return nullptr;
