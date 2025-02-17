@@ -92,7 +92,7 @@ void dae::Minigin::Run(const std::function<void()>& load)
 	float lag = 0;
 
 	const float fixedTimeStep = 0.01f;
-	const int msPerFrame = 10;
+	const int msPerFrame = 16;
 
 	while (doContinue)
 	{

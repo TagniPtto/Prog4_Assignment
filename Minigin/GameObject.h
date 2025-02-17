@@ -11,7 +11,7 @@ namespace dae
 	class Texture2D;
 
 	// todo: this should become final.
-	class GameObject : final
+	class GameObject final
 	{
 	public:
 		virtual void Update(float deltaTime);
@@ -28,6 +28,11 @@ namespace dae
 		GameObject& operator=(const GameObject& other) = delete;
 		GameObject& operator=(GameObject&& other) = delete;
 
+
+		int GetChildrenLenght();
+		GameObject* GetChildAtIndex(int index);
+
+
 		template<typename T , typename... Args>
 		typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type AddComponent(Args&&... args);
 
@@ -43,9 +48,11 @@ namespace dae
 
 	private:
 		Transform m_transform{};
-		// todo: mmm, every gameobject has a texture? Is that correct?
-		std::shared_ptr<Texture2D> m_texture{};
+		
+
+		std::shared_ptr<dae::Texture2D> m_texture{};
 		std::vector<std::unique_ptr<ObjectComponent>> m_components{};
+		std::vector<std::unique_ptr<GameObject>> m_children{};
 	};
 
 
@@ -53,7 +60,7 @@ namespace dae
 	template <typename T, typename... Args>
 	inline typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type GameObject::AddComponent(Args&&... args)
 	{
-		m_components.push_back(std::make_unique<T>(std::forward<Args>(args)...));  // Create unique_ptr to T, not ObjectComponent
+		m_components.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));  // Create unique_ptr to T, not ObjectComponent
 	}
 
 	template<typename T>

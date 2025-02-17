@@ -5,6 +5,19 @@
 
 dae::GameObject::~GameObject() = default;
 
+int dae::GameObject::GetChildrenLenght()
+{
+	return (int)m_children.size();
+}
+
+dae::GameObject* dae::GameObject::GetChildAtIndex(int index)
+{
+	if (index < m_children.size() && index > 0) {
+		return m_children[index].get();
+	}
+	return nullptr;
+}
+
 void dae::GameObject::Update(float deltaTime){
 	for (int i{}; i < (int)m_components.size(); i++) {
 		m_components[i]->Update(deltaTime);
