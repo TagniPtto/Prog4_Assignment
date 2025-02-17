@@ -1,5 +1,6 @@
 #pragma once
 #include <glm.hpp>
+#include "ObjectComponent.h"
 
 namespace dae
 {
@@ -12,3 +13,5 @@ namespace dae
 		glm::vec3 m_position;
 	};
 }
+
+
