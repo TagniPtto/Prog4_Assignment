@@ -1,8 +1,18 @@
 #pragma once
+
+namespace dae {
+	class GameObject;
+}
 class ObjectComponent
 {
+
+protected:
+	dae::GameObject* m_owner;
+
+protected:
+	ObjectComponent(dae::GameObject& owner);
+
 public :
-	ObjectComponent() = default;
 	virtual ~ObjectComponent() = default;
 
 	ObjectComponent(ObjectComponent&& other) = delete;
@@ -12,8 +22,7 @@ public :
 	ObjectComponent operator=(const ObjectComponent& other) = delete;
 
 	virtual void Render() const {};
-
-	virtual void Update(float elapsedSec) = 0;
-	virtual void FixedUpdate(float timeStep) = 0;
+	virtual void Update(float) {};
+	virtual void FixedUpdate(float) {};
 };
 

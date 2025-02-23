@@ -12,13 +12,12 @@ namespace dae
 	{
 	public:
 		virtual void Update(float elapsedSec) override;
-		virtual void FixedUpdate(float timeStep) override;
 		virtual void Render() const override;
 
 		void SetText(const std::string& text);
-		void SetPosition(float x, float y);
+		void SetLocalPosition(float x, float y);
 
-		TextComponent(const std::string& text, std::shared_ptr<Font> font);
+		TextComponent(GameObject& owner, const std::string& text, std::shared_ptr<Font> font);
 		virtual ~TextComponent() = default;
 		TextComponent(const TextComponent& other) = delete;
 		TextComponent(TextComponent&& other) = delete;
@@ -27,7 +26,7 @@ namespace dae
 	private:
 		bool m_needsUpdate;
 		std::string m_text;
-		Transform m_transform{};
+		Transform m_localTransform{};
 		std::shared_ptr<Font> m_font;
 		std::shared_ptr<Texture2D> m_textTexture;
 	};

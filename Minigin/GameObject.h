@@ -13,13 +13,26 @@ namespace dae
 	// todo: this should become final.
 	class GameObject final
 	{
+
+	private:
+		Transform m_localTransform{};
+		Transform m_worldTransform{};
+
+		GameObject* m_parent;
+		std::vector<GameObject*> m_children{};
+		std::vector<ObjectComponent*> m_components{};
+		bool m_positionIsDirty = false;
+
 	public:
 		virtual void Update(float deltaTime);
 		virtual void FixedUpdate(float timeStep);
 		virtual void Render() const;
 
-		void SetTexture(const std::string& filename);
-		void SetPosition(float x, float y);
+		void SetDirty();
+		void SetLocalPosition(float x, float y);
+		void SetLocalPosition(glm::vec3 pos);
+		glm::vec3 GetWorldPosition();
+		glm::vec3 GetlocalPosition();
 
 		GameObject() = default;
 		virtual ~GameObject();
@@ -29,6 +42,12 @@ namespace dae
 		GameObject& operator=(GameObject&& other) = delete;
 
 
+
+		void SetParent(GameObject* parent, bool KeepWorldPosition = true);
+		void AddChild(GameObject* child);
+		void RemoveChild(GameObject* child);
+		bool IsChild(GameObject* child);
+
 		int GetChildrenLenght();
 		GameObject* GetChildAtIndex(int index);
 
@@ -37,58 +56,49 @@ namespace dae
 		typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type AddComponent(Args&&... args);
 
 		template<typename T>
-		typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, T*>::type GetComponent(int index);
+		typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, T*>::type GetComponent();
 
 		template<typename T>
-		typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type RemoveComponent(int index);
+		typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type RemoveComponent();
 
 		template<typename T>
 		typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, bool>::type HasComponent();
-
-
-	private:
-		Transform m_transform{};
-		
-
-		std::shared_ptr<dae::Texture2D> m_texture{};
-		std::vector<std::unique_ptr<ObjectComponent>> m_components{};
-		std::vector<std::unique_ptr<GameObject>> m_children{};
 	};
-
-
 
 	template <typename T, typename... Args>
 	inline typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type GameObject::AddComponent(Args&&... args)
 	{
-		m_components.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));  // Create unique_ptr to T, not ObjectComponent
+		m_components.emplace_back(new T(*this,std::forward<Args>(args)...));  // Create unique_ptr to T, not ObjectComponent
 	}
 
 	template<typename T>
-	inline typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, T* >::type GameObject::GetComponent(int index)
+	inline typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, T* >::type GameObject::GetComponent()
 	{
-		if (index < (int)m_components.size() && index >= 0) {
-			if (typeid(*m_components[index].get()) == typeid(T))
+		for (auto& component : m_components) {
+			if (typeid(*component) == typeid(T))
 			{
-				return dynamic_cast<T*>(m_components[index].get());
+				return dynamic_cast<T*>(component);
 			}
-
 		}
 		return nullptr;
 	}
 	template<typename T>
-	inline typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type GameObject::RemoveComponent(int index)
+	inline typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, void>::type GameObject::RemoveComponent()
 	{
-		if (index < (int)m_components.size() && index >= 0) {
-			if (typeid(m_components[index]) == typeid(T)) {
-				m_components.erase(index);
+		for (auto it = m_components.cbegin(); it != m_components.cend(); it++) {
+			if (typeid(**it) == typeid(T))
+			{
+				delete *it;
+				m_components.erase(it);
 			}
 		}
+
 	}
 	template<typename T>
 	inline typename std::enable_if<std::is_base_of<ObjectComponent, T>::value, bool>::type GameObject::HasComponent()
 	{
-		for (auto component: m_components) {
-			if (typeid(component) == typeid(T))return true;
+		for (const auto& component : m_components) {
+			if (typeid(*component) == typeid(T))return true;
 		}
 		return false;
 	}

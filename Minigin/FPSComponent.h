@@ -1,12 +1,16 @@
 
 #pragma once
 #include "TextComponent.h"
+
 namespace dae {
-    class FPSComponent :
-        public TextComponent
+    class TextComponent;
+
+    class FPSComponent : public ObjectComponent
     {
+    private:
+        dae::TextComponent* m_textRenderer;
     public:
-        FPSComponent(const std::string& text, std::shared_ptr<Font> font);
+        FPSComponent(GameObject& owner, const std::string& text, std::shared_ptr<Font> font);
 
 
         FPSComponent(FPSComponent&& other) = delete;
@@ -16,7 +20,6 @@ namespace dae {
         FPSComponent operator=(const FPSComponent& other) = delete;
 
         void Update(float deltaTime) override;
-        void FixedUpdate(float timeStep) override;
         void Render()const override;
     private:
         float timeCounter;

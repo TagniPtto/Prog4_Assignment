@@ -1,9 +1,16 @@
 #include "FPSComponent.h"
+#include "GameObject.h"
+#include "TextComponent.h"
 #include <iomanip>
 #include <sstream>
-dae::FPSComponent::FPSComponent(const std::string& text, std::shared_ptr<Font> font) :
-	TextComponent(text, font), timeCounter(0), frameCount(0)
+dae::FPSComponent::FPSComponent(GameObject& owner,const std::string& text, std::shared_ptr<Font> font) :
+	ObjectComponent(owner), timeCounter(0), frameCount(0)
 {
+	if (!m_owner->HasComponent<TextComponent>()) {
+		throw std::runtime_error("Cant have an FPS component without a TextComponent");
+	}
+	m_textRenderer = m_owner->GetComponent<TextComponent>();
+	m_textRenderer->SetText(text);
 }
 void dae::FPSComponent::Update(float deltaTime)
 {
@@ -15,17 +22,14 @@ void dae::FPSComponent::Update(float deltaTime)
 		oss << std::fixed << std::setprecision(1) << "FPS: " << fps;
 		// Get the formatted string
 		std::string formatted_fps = oss.str();
-		SetText(formatted_fps);
-		timeCounter = 0;
+		
+		m_textRenderer->SetText(formatted_fps);
+		timeCounter -= 1;
 		frameCount = 0;
 	}
-	TextComponent::Update(deltaTime);
-}
-void dae::FPSComponent::FixedUpdate(float timeStep)
-{
-	TextComponent::FixedUpdate(timeStep);
+	m_textRenderer->Update(deltaTime);
 }
 void dae::FPSComponent::Render() const
 {
-	TextComponent::Render();
+	m_textRenderer->Render();
 }

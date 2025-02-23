@@ -103,12 +103,15 @@ void dae::Minigin::Run(const std::function<void()>& load)
 
 		lag += deltaTime;
 
+
+		doContinue = input.ProcessInput();
+		//FEEDBACK : Process input before updating everything
+
 		while (lag > fixedTimeStep) {
 			sceneManager.FixedUpdate(fixedTimeStep);
 			lag -= fixedTimeStep;
 		}
 
-		doContinue = input.ProcessInput();
 		sceneManager.Update(deltaTime);
 		renderer.Render();
 

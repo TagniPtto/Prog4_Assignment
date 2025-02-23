@@ -5,9 +5,10 @@
 #include "Font.h"
 #include "Texture2D.h"
 
-dae::TextComponent::TextComponent(const std::string& text, std::shared_ptr<Font> font) 
-	: m_needsUpdate(true), m_text(text), m_font(std::move(font)), m_textTexture(nullptr)
-{ }
+dae::TextComponent::TextComponent(GameObject& owner, const std::string& text, std::shared_ptr<Font> font)
+	: ObjectComponent(owner), m_needsUpdate(true), m_text(text), m_font(std::move(font)), m_textTexture(nullptr)
+{ 
+}
 
 void dae::TextComponent::Update(float elapsedSec)
 {
@@ -31,16 +32,12 @@ void dae::TextComponent::Update(float elapsedSec)
 	}
 }
 
-void dae::TextComponent::FixedUpdate(float timeStep)
-{
-	timeStep;
-}
 
 void dae::TextComponent::Render() const
 {
 	if (m_textTexture != nullptr)
 	{
-		const auto& pos = m_transform.GetPosition();
+		const auto& pos = m_localTransform.GetPosition();
 		Renderer::GetInstance().RenderTexture(*m_textTexture, pos.x, pos.y);
 	}
 }
@@ -52,9 +49,9 @@ void dae::TextComponent::SetText(const std::string& text)
 	m_needsUpdate = true;
 }
 
-void dae::TextComponent::SetPosition(const float x, const float y)
+void dae::TextComponent::SetLocalPosition(const float x, const float y)
 {
-	m_transform.SetPosition(x, y, 0.0f);
+	m_localTransform.SetPosition(glm::vec3(x, y, 0.0f));
 }
 
 
