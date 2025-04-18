@@ -24,5 +24,6 @@ public :
 	virtual void Render() const {};
 	virtual void Update(float) {};
 	virtual void FixedUpdate(float) {};
+	virtual void OnGuiRender() {};
 };
 

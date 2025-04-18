@@ -15,6 +15,7 @@ namespace dae
 		void Update(float deltaTime);
 		void FixedUpdate(float timeStep);
 		void Render() const;
+		void OnGuiRender();
 
 		~Scene();
 		Scene(const Scene& other) = delete;

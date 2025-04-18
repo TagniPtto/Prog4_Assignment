@@ -3,6 +3,24 @@
 #include "SceneManager.h"
 #include "Texture2D.h"
 
+#include "imgui.h"
+#include "backends/imgui_impl_sdl2.h"
+#include "backends/imgui_impl_opengl3.h"
+
+
+void InitImGui(SDL_Window* window, SDL_GLContext glContext)
+{
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+
+	ImGui_ImplSDL2_InitForOpenGL(window, glContext);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+}
 int GetOpenGLDriverIndex()
 {
 	auto openglIndex = -1;
@@ -25,6 +43,7 @@ void dae::Renderer::Init(SDL_Window* window)
 	{
 		throw std::runtime_error(std::string("SDL_CreateRenderer Error: ") + SDL_GetError());
 	}
+	InitImGui(window, SDL_GL_GetCurrentContext());
 }
 
 void dae::Renderer::Render() const
@@ -33,18 +52,44 @@ void dae::Renderer::Render() const
 	SDL_SetRenderDrawColor(m_renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderClear(m_renderer);
 
+
+
 	SceneManager::GetInstance().Render();
 	
 	SDL_RenderPresent(m_renderer);
+
+}
+
+void dae::Renderer::OnGuiRender()
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+	
+	
+	//call all other onguiRender
+	SceneManager::GetInstance().OnGuiRender();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
+
 }
 
 void dae::Renderer::Destroy()
 {
+
 	if (m_renderer != nullptr)
 	{
 		SDL_DestroyRenderer(m_renderer);
 		m_renderer = nullptr;
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y) const

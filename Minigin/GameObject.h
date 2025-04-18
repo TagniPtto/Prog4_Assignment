@@ -24,9 +24,10 @@ namespace dae
 		bool m_positionIsDirty = false;
 
 	public:
-		virtual void Update(float deltaTime);
-		virtual void FixedUpdate(float timeStep);
-		virtual void Render() const;
+		void Update(float deltaTime);
+		void FixedUpdate(float timeStep);
+		void Render() const;
+		void OnGuiRender();
 
 		void SetDirty();
 		void SetLocalPosition(float x, float y);
@@ -44,9 +45,7 @@ namespace dae
 
 
 		void SetParent(GameObject* parent, bool KeepWorldPosition = true);
-		void AddChild(GameObject* child);
-		void RemoveChild(GameObject* child);
-		bool IsChild(GameObject* child);
+		bool IsMyChild(GameObject* child);
 
 		int GetChildrenLenght();
 		GameObject* GetChildAtIndex(int index);

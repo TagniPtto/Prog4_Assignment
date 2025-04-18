@@ -3,57 +3,19 @@
 #include "RotatorComponent.h"
 
 
-dae::GameObject::~GameObject() = default;
-
-void dae::GameObject::SetParent(GameObject* parent , bool KeepWorldPosition)
-{
-	
-	if (parent == this|| m_parent == parent || IsChild(parent)) {
-		return;
+dae::GameObject::~GameObject() {
+	for (auto& component : m_components) {
+		delete component;
+		component = nullptr;
 	}
-
-	if (parent == nullptr) {
-		SetLocalPosition(GetWorldPosition());
+	for (auto& child : m_children) {
+		child->SetParent(m_parent);
 	}
-	else {
-		if (KeepWorldPosition) {
-			SetLocalPosition(GetWorldPosition() - parent->GetWorldPosition());
-		}
-	}
-	if (m_parent != nullptr) {
-		m_parent->RemoveChild(this);
-		// Remove self from old parents children
-	}
-	if (parent != nullptr) {
-		parent->AddChild(this);
-		// Add this object as new child of new parent
-	}
-	m_parent = parent;
+	SetParent(nullptr);
 }
 
-void dae::GameObject::AddChild(GameObject* child)
-{
-	if (child == this || child == nullptr || IsChild(child)) {
-		return;
-	}
 
-	child->SetParent(nullptr);
-	m_children.emplace_back(child);
-	//TODO update Transform
-}
-
-void dae::GameObject::RemoveChild(GameObject* child)
-{
-	if (child == this || child == nullptr) {
-		return;
-	}
-	if (IsChild(child)) {
-		m_children.erase(std::remove(m_children.begin(), m_children.end(), child), m_children.end());
-	}
-	//TODO update transform 
-}
-
-bool dae::GameObject::IsChild(GameObject* child)
+bool dae::GameObject::IsMyChild(GameObject* child)
 {
 	for (const auto& _child : m_children) {
 		if (_child == child) {
@@ -74,6 +36,34 @@ dae::GameObject* dae::GameObject::GetChildAtIndex(int index)
 		return m_children[index];
 	}
 	return nullptr;
+}
+
+void dae::GameObject::SetParent(GameObject* newParent , bool KeepWorldPosition)
+{
+	
+	if (newParent == this|| m_parent == newParent || IsMyChild(newParent)) {
+		return;
+	}
+
+	//Handle location
+	if(newParent != nullptr && KeepWorldPosition) 
+	{
+		SetLocalPosition(GetWorldPosition() - newParent->GetWorldPosition());
+	}
+	else
+	{
+		SetLocalPosition(GetWorldPosition());
+	}
+	//remove self from old parent
+	if (m_parent != nullptr && m_parent->IsMyChild(this)) {
+		m_parent->m_children.erase(std::remove(m_parent->m_children.begin(), m_parent->m_children.end(), this), m_parent->m_children.end());
+	}
+	//add self to new parent
+	if (newParent != nullptr && !newParent->IsMyChild(this)) {
+		newParent->m_children.push_back(this);
+	}
+	//Assign the new parent
+	m_parent = newParent;
 }
 
 void dae::GameObject::Update(float deltaTime){
@@ -99,9 +89,19 @@ void dae::GameObject::Render() const
 
 }
 
+void dae::GameObject::OnGuiRender()
+{
+	for (int i{}; i < (int)m_components.size(); i++) {
+		m_components[i]->OnGuiRender();
+	}
+}
+
 void dae::GameObject::SetDirty()
 {
 	m_positionIsDirty = true;
+	for (auto& child : m_children) {
+		child->SetDirty();
+	}
 }
 
 void dae::GameObject::SetLocalPosition(float x, float y)
@@ -122,14 +122,8 @@ glm::vec3 dae::GameObject::GetWorldPosition()
 			m_worldTransform.SetPosition(m_localTransform.GetPosition());
 		}
 		else {
-			if (this->HasComponent<RotatorComponent>()) {
-				auto rot = this->GetComponent<RotatorComponent>();
-				m_worldTransform.SetPosition(m_parent->GetWorldPosition() + rot->GetRotatedPosition());
-			}
-			else {
 
-				m_worldTransform.SetPosition(m_parent->GetWorldPosition() + m_localTransform.GetPosition());
-			}
+			m_worldTransform.SetPosition(m_parent->GetWorldPosition() + m_localTransform.GetPosition());
 		}
 		m_positionIsDirty = false;
 	}

@@ -4,6 +4,8 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <SDL_opengl.h>
+
 #include "Minigin.h"
 #include "InputManager.h"
 #include "SceneManager.h"
@@ -50,6 +52,7 @@ dae::Minigin::Minigin(const std::string &dataPath)
 		throw std::runtime_error(std::string("SDL_Init Error: ") + SDL_GetError());
 	}
 
+
 	g_window = SDL_CreateWindow(
 		"Programming 4 assignment",
 		SDL_WINDOWPOS_CENTERED,
@@ -63,13 +66,16 @@ dae::Minigin::Minigin(const std::string &dataPath)
 		throw std::runtime_error(std::string("SDL_CreateWindow Error: ") + SDL_GetError());
 	}
 
+
 	Renderer::GetInstance().Init(g_window);
 
 	ResourceManager::GetInstance().Init(dataPath);
+	
 }
 
 dae::Minigin::~Minigin()
 {
+
 	Renderer::GetInstance().Destroy();
 	SDL_DestroyWindow(g_window);
 	g_window = nullptr;
@@ -102,8 +108,6 @@ void dae::Minigin::Run(const std::function<void()>& load)
 		lastTime = thisTime;
 
 		lag += deltaTime;
-
-
 		doContinue = input.ProcessInput();
 		//FEEDBACK : Process input before updating everything
 
@@ -114,6 +118,8 @@ void dae::Minigin::Run(const std::function<void()>& load)
 
 		sceneManager.Update(deltaTime);
 		renderer.Render();
+		renderer.OnGuiRender();
+
 
 		const auto sleeptime = thisTime + std::chrono::milliseconds(msPerFrame) - std::chrono::high_resolution_clock::now();
 		std::this_thread::sleep_for(sleeptime);

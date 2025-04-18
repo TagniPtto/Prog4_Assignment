@@ -50,3 +50,11 @@ void Scene::Render() const
 	}
 }
 
+void dae::Scene::OnGuiRender()
+{
+	for (const auto& object : m_objects)
+	{
+		object->OnGuiRender();
+	}
+}
+
